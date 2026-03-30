@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.mono { font-family: 'DM Mono', monospace; }
+
+.kpi-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.delta-up { color: #1D9E75; font-size: 11px; font-family: 'DM Mono', monospace; }
+.delta-dn { color: #D85A30; font-size: 11px; font-family: 'DM Mono', monospace; }
+.delta-nt { color: var(--ant-color-text-tertiary, #9e9d97); font-size: 11px; font-family: 'DM Mono', monospace; }
