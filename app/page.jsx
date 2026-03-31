@@ -10,7 +10,6 @@ import KpiGrid        from '@/components/KpiGrid';
 import SportCards     from '@/components/SportCards';
 import ChartsRow      from '@/components/ChartsRow';
 import SessionsList   from '@/components/SessionsList';
-import AddSessionForm from '@/components/AddSessionForm';
 
 import { getWeekKey, fmtWeekRange } from '@/lib/constants';
 
@@ -67,12 +66,8 @@ export default function DashboardPage() {
       const data = await res.json();
       if (!data.activities) throw new Error(data.error || 'Resposta inválida');
 
-      setAllSessions(prev => {
-        const manual   = prev.filter(s => s.source === 'manual');
-        const combined = [...manual, ...data.activities];
-        persist(combined);
-        return combined;
-      });
+      setAllSessions(data.activities);
+      persist(data.activities);
       showAlert('success', `${data.activities.length} atividade(s) sincronizada(s).`);
     } catch (err) {
       showAlert('error', 'Erro ao sincronizar: ' + err.message);
@@ -80,22 +75,6 @@ export default function DashboardPage() {
       setSyncing(false);
     }
   }, [showAlert]);
-
-  const addSession = useCallback((session) => {
-    setAllSessions(prev => {
-      const next = [...prev, session];
-      persist(next);
-      return next;
-    });
-  }, []);
-
-  const deleteSession = useCallback((id) => {
-    setAllSessions(prev => {
-      const next = prev.filter(s => s.id !== id);
-      persist(next);
-      return next;
-    });
-  }, []);
 
   if (authLoading) {
     return (
@@ -146,8 +125,7 @@ export default function DashboardPage() {
         <KpiGrid cur={cur} prev={prev} />
         <SportCards sessions={cur} />
         <ChartsRow sessions={cur} weekOffset={weekOffset} allSessions={allSessions} />
-        <SessionsList sessions={cur} onDelete={deleteSession} />
-        <AddSessionForm weekOffset={weekOffset} onAdd={addSession} />
+        <SessionsList sessions={cur} />
 
       </Content>
     </Layout>

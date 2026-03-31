@@ -1,113 +1,117 @@
-# Tri Dash — Next.js + Ant Design
 
-Dashboard de triathlon com integração Strava. Stack: Next.js 14 (App Router) + Ant Design 5 + Recharts + iron-session.
+```markdown
+# Tri Dash — Triathlon dashboard
 
-## Estrutura
+Quick summary
+
+Tri Dash is a Next.js (App Router) dashboard that integrates with Strava using OAuth. The UI is built with Ant Design and charts with Recharts. Authentication and athlete tokens are stored server-side using `iron-session`. Activities are fetched from Strava via server API routes and cached locally in the browser's `localStorage` alongside manually added sessions.
+
+Architecture (high level)
+
+- Frontend: React + Next.js (App Router) with client components for interactive UI.
+- Backend: Next API route handlers in `app/api/*` that act as a proxy to Strava and manage session cookies with `iron-session`.
+- Persistence: tokens and athlete data stored in server-side session (cookie). Activity cache and manual sessions are stored in `localStorage` on the client.
+
 
 ```
-tri-dash-next/
+
+Project structure
+
+```
+tri-dash/
 ├── app/
-│   ├── layout.jsx              ← ConfigProvider Ant Design + dark mode
-│   ├── page.jsx                ← Dashboard principal (client component)
+│   ├── layout.jsx              ← Ant Design ConfigProvider + theme/dark mode
+│   ├── page.jsx                ← Main dashboard (client component)
 │   ├── globals.css
-│   └── api/
-│       ├── me/route.js         ← GET /api/me
-│       ├── activities/route.js ← GET /api/activities
++│   └── api/
+│       ├── me/route.js         ← GET /api/me (basic athlete info)
+│       ├── activities/route.js ← GET /api/activities (proxy to Strava + refresh)
 │       └── auth/
-│           ├── login/route.js     ← GET /api/auth/login
-│           ├── callback/route.js  ← GET /api/auth/callback
-│           └── logout/route.js    ← GET /api/auth/logout
-├── components/
-│   ├── AuthCard.jsx
-│   ├── TopBar.jsx
-│   ├── KpiGrid.jsx
-│   ├── SportCards.jsx
-│   ├── ChartsRow.jsx
-│   ├── SessionsList.jsx
-│   └── AddSessionForm.jsx
-├── lib/
-│   ├── session.js     ← iron-session config (server)
-│   ├── strava.js      ← mapActivity + TSS estimate
-│   └── constants.js   ← SPORTS, helpers, formatters
+│           ├── login/route.js     ← GET /api/auth/login (start OAuth)
+│           ├── callback/route.js  ← GET /api/auth/callback (exchange code -> token)
+│           └── logout/route.js    ← GET /api/auth/logout (destroy session)
+├── components/                  ← UI components: TopBar, KpiGrid, ChartsRow, SessionsList, AddSessionForm, AuthCard
+├── lib/                         ← shared logic: session config, Strava mapping, constants
 ├── next.config.js
-└── package.json
+├── package.json
+└── README.md
 ```
 
-## Setup local
+Important endpoints
 
-### 1. Instalar dependências
+- GET /api/auth/login — start OAuth flow (redirect to Strava)
+- GET /api/auth/callback — OAuth callback, exchanges code for tokens and saves `session.athlete`
+- GET /api/auth/logout — clear session
+- GET /api/me — return basic athlete info (id, firstname, lastname, profile)
+- GET /api/activities?weeks=N — fetch activities from Strava (uses session token; refreshes token if needed)
+
+Local setup
+
+1) Install dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Configurar variáveis de ambiente
-```bash
-cp .env.example .env.local
-```
-Edite `.env.local`:
-```
-STRAVA_CLIENT_ID=seu_client_id
-STRAVA_CLIENT_SECRET=seu_client_secret
+2) Environment variables
+
+Create a `.env.local` file at the project root and set the variables:
+
+```env
+STRAVA_CLIENT_ID=your_client_id
+STRAVA_CLIENT_SECRET=your_client_secret
 APP_URL=http://localhost:3000
-SESSION_SECRET=string_aleatoria_32_chars
+SESSION_SECRET=random_32_bytes_hex_or_base64
 ```
 
-Gerar SESSION_SECRET:
+Generate a secure `SESSION_SECRET` example:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-### 3. Configurar app no Strava
-Em https://www.strava.com/settings/api:
-- **Authorization Callback Domain**: `localhost`
+Security note: do not commit `.env.local`. In production, always set `SESSION_SECRET` to a secure value with at least 32 bytes of entropy.
 
-### 4. Rodar
+3) Configure your Strava application
+
+On Strava's API settings (https://www.strava.com/settings/api) create an app and set the authorization callback URL:
+
+- Local: `http://localhost:3000/api/auth/callback`
+- Production: `https://YOUR_DOMAIN/api/auth/callback`
+
+4) Run locally
+
 ```bash
 npm run dev
-```
-Acesse: http://localhost:3000
-
----
-
-## Deploy no Vercel
-
-### 1. Push para o GitHub
-```bash
-git init && git add . && git commit -m "feat: tri dash next"
-git remote add origin https://github.com/SEU_USUARIO/tri-dash-next.git
-git push -u origin main
+# Open http://localhost:3000
 ```
 
-### 2. Importar no Vercel
-- https://vercel.com/new → importar repositório
-- Framework Preset: **Next.js** (detectado automaticamente)
-- Clicar em **Deploy**
+Deploy to Vercel
 
-### 3. Variáveis de ambiente no Vercel
-Settings → Environment Variables:
+1. Push the repo to GitHub and import it into Vercel.
+2. Configure environment variables in the Vercel dashboard (STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, APP_URL, SESSION_SECRET).
+3. Update the Strava app callback to match your production domain.
 
-| Variável | Valor |
+Stack
+
+| Layer | Technology |
 |---|---|
-| `STRAVA_CLIENT_ID` | ID da app Strava |
-| `STRAVA_CLIENT_SECRET` | Secret da app Strava |
-| `APP_URL` | `https://tri-dash-next.vercel.app` |
-| `SESSION_SECRET` | String aleatória ≥ 32 chars |
+| Framework | Next.js (App Router) |
+| UI | Ant Design |
+| Charts | Recharts |
+| Session | iron-session (httpOnly cookie) |
+| HTTP | fetch (native) |
+| Deployment | Vercel |
 
-Após adicionar: **Deployments → Redeploy**
+Quick recommendations
 
-### 4. Atualizar callback no Strava
-Em https://www.strava.com/settings/api:
-- **Authorization Callback Domain**: `tri-dash-next.vercel.app`
+- Ensure `SESSION_SECRET` is set in production and remove the insecure fallback from server code.
+- Manual sessions are stored in `localStorage` and are not shared between devices — consider adding server-side persistence keyed by `athlete.id` if you need multi-device sync.
+- Avoid logging secrets (client secret or tokens). Add monitoring for OAuth/token exchange errors and for token refresh failures.
+- Consider protecting the token refresh logic from parallel refresh race conditions if your app issues concurrent requests.
 
----
+License / notes
 
-## Stack
+Personal project. Adjust environment variables and domains as needed.
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| UI | Ant Design 5 |
-| Gráficos | Recharts |
-| Sessão | iron-session |
-| HTTP (Strava) | fetch nativo |
-| Deploy | Vercel |
+``` 

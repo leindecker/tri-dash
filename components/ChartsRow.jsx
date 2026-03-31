@@ -3,11 +3,39 @@
 import { Card, Row, Col } from 'antd';
 import {
   PieChart, Pie, Cell, Tooltip as RTooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import {
-  SPORTS, fmtTime, fmtWeekRange, aggregateSessions, getMondayOf, getWeekKey,
+  SPORTS, fmtTime, fmtWeekRange, aggregateSessions, getWeekKey,
 } from '@/lib/constants';
+
+// Custom tooltip to control background and text styles (better for dark theme)
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+
+  return (
+    <div style={{
+      background: '#ffffff',
+      color: '#111',
+      padding: '10px 12px',
+      borderRadius: 8,
+      fontSize: 13,
+      boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+      minWidth: 160,
+    }}>
+      {label && <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>{label}</div>}
+      {payload.map((p, i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: i < payload.length - 1 ? 8 : 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 10, height: 10, background: (p.payload && p.payload.color) || p.color || '#888', borderRadius: 2 }} />
+            <div style={{ fontSize: 13, color: '#111' }}>{p.name || p.dataKey}</div>
+          </div>
+          <div style={{ fontWeight: 700, color: '#111', fontSize: 13 }}>{typeof p.value === 'number' ? fmtTime(p.value) : String(p.value)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function fmtTickTime(mins) {
   if (!mins) return '0';
@@ -64,7 +92,11 @@ export default function ChartsRow({ sessions, weekOffset, allSessions }) {
                 dataKey="value" paddingAngle={2}>
                 {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Pie>
-              <RTooltip formatter={(v) => fmtTime(v)} />
+              <RTooltip
+                content={<CustomTooltip />}
+                wrapperStyle={{ background: 'transparent' }}
+                contentStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
@@ -86,7 +118,11 @@ export default function ChartsRow({ sessions, weekOffset, allSessions }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={fmtTickTime} tick={{ fontSize: 9 }} axisLine={false} tickLine={false} width={36} />
-              <RTooltip formatter={(v) => fmtTime(v)} />
+              <RTooltip
+                content={<CustomTooltip />}
+                wrapperStyle={{ background: 'transparent' }}
+                contentStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}
+              />
               <Bar dataKey="Atual" radius={[4, 4, 0, 0]}>
                 {compareData.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Bar>
@@ -123,7 +159,11 @@ export default function ChartsRow({ sessions, weekOffset, allSessions }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
               <YAxis domain={[hMin, hMax]} tickFormatter={fmtTickTime} tick={{ fontSize: 9 }} axisLine={false} tickLine={false} width={36} />
-              <RTooltip formatter={(v) => fmtTime(v)} />
+              <RTooltip
+                content={<CustomTooltip />}
+                wrapperStyle={{ background: 'transparent' }}
+                contentStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}
+              />
               <Bar dataKey="mins" radius={[4, 4, 0, 0]}>
                 {weeksData.map((w, i) => (
                   <Cell key={i} fill={w.isCurrent ? '#1D9E75' : 'rgba(128,128,128,0.25)'} />

@@ -5,7 +5,7 @@ import { SPORTS, DAYS, fmtTime, fmtPaceOrSpeed } from '@/lib/constants';
 
 const { Text } = Typography;
 
-export default function SessionsList({ sessions, onDelete }) {
+export default function SessionsList({ sessions }) {
   const sorted = [...sessions].sort((a, b) => a.day - b.day);
 
   const columns = [
@@ -50,38 +50,34 @@ export default function SessionsList({ sessions, onDelete }) {
       title: 'Dist / TSS',
       key: 'meta',
       align: 'right',
-      width: 110,
+      width: 140,
       render: (_, s) => {
         const pace = fmtPaceOrSpeed(s.sport, s.avgSpeed);
         return (
-          <div style={{ textAlign: 'right' }}>
-            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-              {s.dist > 0 ? `${s.dist.toFixed(1)} km · ` : ''}TSS {s.tss}
-            </Text>
-            {pace && (
-              <div>
-                <Text type="secondary" style={{ fontSize: 10, fontFamily: 'DM Mono, monospace', opacity: 0.7 }}>
-                  {pace}
-                </Text>
+          <div style={{ textAlign: 'right', minWidth: 120 }}>
+            {/* Single-line: distance - TSS */}
+            <div style={{ textAlign: 'right', minWidth: 120 }}>
+              <div style={{ fontSize: 13, fontFamily: 'DM Mono, monospace', color: 'var(--ant-color-text)' }}>
+                {s.dist > 0 ? `${s.dist.toFixed(1)}km` : '—'} - {s.tss} TSS
               </div>
-            )}
+
+              {/* NP line (normalized power) */}
+              {s.sport === 'bike' && s.normPower && (
+                <div style={{ fontSize: 11, fontFamily: 'DM Mono, monospace', color: 'rgba(255,255,255,0.75)', marginTop: 6 }}>
+                  NP - <strong style={{ color: 'var(--ant-color-text)' }}>{Math.round(s.normPower)}</strong>
+                </div>
+              )}
+
+              {/* Average speed */}
+              <div style={{ fontSize: 10, fontFamily: 'DM Mono, monospace', color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
+                {pace ? `Vel. média - ${pace}` : ''}
+              </div>
+            </div>
           </div>
         );
       },
     },
-    {
-      title: '',
-      key: 'action',
-      width: 32,
-      render: (_, s) =>
-        s.source === 'manual' ? (
-          <Text
-            type="danger"
-            style={{ cursor: 'pointer', fontSize: 12 }}
-            onClick={() => onDelete(s.id)}
-          >✕</Text>
-        ) : null,
-    },
+    // removed manual delete action column
   ];
 
   return (
@@ -93,7 +89,7 @@ export default function SessionsList({ sessions, onDelete }) {
     >
       {sorted.length === 0 ? (
         <div style={{ padding: '24px 16px' }}>
-          <Empty description="Nenhum treino. Sincronize o Strava ou adicione manualmente." image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          <Empty description="Nenhum treino. Sincronize o Strava." image={Empty.PRESENTED_IMAGE_SIMPLE} />
         </div>
       ) : (
         <Table
