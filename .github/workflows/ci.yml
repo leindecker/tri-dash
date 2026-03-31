@@ -5,6 +5,16 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      skip_export:
+        description: 'Skip static export and Pages deploy (true/false)'
+        required: false
+        default: 'false'
+      image_tag:
+        description: 'Tag for the Docker image (optional). Default: latest'
+        required: false
+        default: 'latest'
 
 jobs:
   build-and-publish:
