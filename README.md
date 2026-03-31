@@ -115,3 +115,43 @@ License / notes
 Personal project. Adjust environment variables and domains as needed.
 
 ``` 
+
+Docker & CI
+------------
+
+This repository includes Docker and GitHub Actions configuration to build a production image and optionally export a static site to GitHub Pages (note: static export will not include server APIs or OAuth flows).
+
+Files added:
+- `Dockerfile.prod` — multi-stage build using Next.js standalone output.
+- `docker-compose.dev.yml` — development compose with hot-reload (mounts code, runs `next dev`).
+- `docker-compose.prod.yml` — simple compose for production image running `node server.js` from standalone output.
+- `.github/workflows/ci.yml` — workflow that builds the app, pushes a Docker image to GHCR and attempts a static `next export` to deploy to GitHub Pages (if applicable).
+
+Run locally with Docker (development):
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Run production image locally (example):
+
+```bash
+docker build -f Dockerfile.prod -t tri-dash:prod .
+docker run -it --rm -p 3000:3000 \
+  -e STRAVA_CLIENT_ID=xxx \
+  -e STRAVA_CLIENT_SECRET=yyy \
+  -e APP_URL=http://localhost:3000 \
+  -e SESSION_SECRET=your_secret_here \
+  tri-dash:prod
+```
+
+GitHub Actions
+--------------
+
+The workflow pushes a Docker image to GitHub Container Registry and attempts to export static pages to GitHub Pages (only works for apps that can be statically exported). Configure repository secrets if you want the GHCR image to be pushed under your account — the workflow uses `GITHUB_TOKEN` by default.
+
+Notes & limitations
+- The Next.js static export (`next export`) will not include server API routes or the OAuth callback; GitHub Pages can only serve a static site — the app's interactive features that depend on server APIs will not work there. For full functionality, deploy the Docker image to a server or platform that runs containers (VPS, DigitalOcean, AWS ECS, etc.).
+- Keep secrets out of source and provide them at runtime using environment variables or secret managers.
+
+

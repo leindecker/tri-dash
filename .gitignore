@@ -8,3 +8,8 @@ node_modules/
 /.idea/
 /.env.example
 /.env.local
+
+public/tooltip-preview.svg
+public/tooltip-preview-white.svg
+out/
+
