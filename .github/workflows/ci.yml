@@ -43,31 +43,3 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-  export-and-deploy-pages:
-    runs-on: ubuntu-latest
-    needs: build-and-publish
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: Install deps
-        run: npm ci
-
-      - name: Static export
-        run: |
-          # next export only works for fully static apps; server APIs won't be included
-          npm run build
-          npm run export
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
-
