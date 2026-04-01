@@ -13,3 +13,6 @@ public/tooltip-preview.svg
 public/tooltip-preview-white.svg
 out/
 
+data/database.sqlite
+data/database.sqlite.bak
+
