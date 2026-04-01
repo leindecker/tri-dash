@@ -1,8 +1,12 @@
-FROM node:20-alpine AS runner
+# -------- BUILDER --------
+FROM node:20-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=production
 
-# 👇 ADICIONE AQUI
+COPY package.json package-lock.json* ./
+RUN npm ci --production=false
+
+COPY . .
+
 ARG SESSION_SECRET
 ARG STRAVA_CLIENT_ID
 ARG STRAVA_CLIENT_SECRET
@@ -13,7 +17,25 @@ ENV STRAVA_CLIENT_ID=$STRAVA_CLIENT_ID
 ENV STRAVA_CLIENT_SECRET=$STRAVA_CLIENT_SECRET
 ENV APP_URL=$APP_URL
 
-# copy standalone build and package.json
+ENV NODE_ENV=production
+
+RUN npm run build
+
+# -------- RUNNER --------
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+ARG SESSION_SECRET
+ARG STRAVA_CLIENT_ID
+ARG STRAVA_CLIENT_SECRET
+ARG APP_URL
+
+ENV SESSION_SECRET=$SESSION_SECRET
+ENV STRAVA_CLIENT_ID=$STRAVA_CLIENT_ID
+ENV STRAVA_CLIENT_SECRET=$STRAVA_CLIENT_SECRET
+ENV APP_URL=$APP_URL
+
 COPY --from=builder /app/.next/standalone .
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
