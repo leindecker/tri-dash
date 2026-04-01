@@ -23,11 +23,6 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    env:
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
-      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-      APP_URL: ${{ secrets.APP_URL }}
 
     steps:
       - name: Checkout
@@ -36,19 +31,23 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.14.0'
+          node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}
         run: npm run build
 
       - name: Build Docker image
         run: |
-          IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
-          docker build -f Dockerfile.prod -t ghcr.io/${{ github.repository_owner }}/tri-dash:${IMAGE_TAG} .
+          docker build -f Dockerfile.prod -t ghcr.io/${{ github.repository_owner }}/tri-dash:latest .
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -59,18 +58,11 @@ jobs:
 
       - name: Push image to GHCR
         run: |
-          IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
-          docker push ghcr.io/${{ github.repository_owner }}/tri-dash:${IMAGE_TAG}
+          docker push ghcr.io/${{ github.repository_owner }}/tri-dash:latest
 
   export-and-deploy-pages:
-    if: ${{ github.event.inputs.skip_export != 'true' }}
     runs-on: ubuntu-latest
     needs: build-and-publish
-    env:
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
-      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-      APP_URL: ${{ secrets.APP_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,7 +70,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.14.0'
+          node-version: '20.x'
 
       - name: Install deps
         run: npm ci

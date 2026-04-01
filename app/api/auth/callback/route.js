@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession, STRAVA, APP_URL } from '@/lib/session';
+import { getOrCreateUserFromAthlete, upsertStravaTokens } from '@/lib/db';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -32,17 +33,26 @@ export async function GET(request) {
     const data = await res.json();
     if (!data.access_token) throw new Error(data.message || 'No token');
 
-    session.athlete = {
-      id:            data.athlete.id,
-      firstname:     data.athlete.firstname,
-      lastname:      data.athlete.lastname,
-      profile:       data.athlete.profile_medium,
-      access_token:  data.access_token,
-      refresh_token: data.refresh_token,
-      expires_at:    data.expires_at,
-    };
+    // Persist user and tokens server-side instead of keeping them inside the session cookie
+    const user = getOrCreateUserFromAthlete({
+      id: data.athlete.id,
+      firstname: data.athlete.firstname,
+      lastname: data.athlete.lastname,
+      profile: data.athlete.profile_medium,
+    });
 
+    upsertStravaTokens(user.id, {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: data.expires_at,
+      scope: data.scope,
+      token_type: data.token_type,
+    });
+
+    // Store only user id in the session cookie
+    session.userId = user.id;
     await session.save();
+
     return NextResponse.redirect(`${APP_URL}/?auth=ok`);
 
   } catch (err) {
