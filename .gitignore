@@ -6,13 +6,7 @@ node_modules/
 .DS_Store
 .vercel/
 /.idea/
-/.env.example
-/.env.local
-
-public/tooltip-preview.svg
-public/tooltip-preview-white.svg
 out/
 
-data/database.sqlite
-data/database.sqlite.bak
+data/
 
