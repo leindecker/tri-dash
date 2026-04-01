@@ -37,34 +37,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        env:
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
-          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-          APP_URL: ${{ secrets.APP_URL }}
-        run: npm run build
-
-      - name: Build Docker image
-        run: |
-         docker build \
-         --build-arg SESSION_SECRET=${{ secrets.SESSION_SECRET }} \
-         --build-arg STRAVA_CLIENT_ID=${{ secrets.STRAVA_CLIENT_ID }} \
-         --build-arg STRAVA_CLIENT_SECRET=${{ secrets.STRAVA_CLIENT_SECRET }} \
-         --build-arg APP_URL=${{ secrets.APP_URL }} \
-         -f Dockerfile.prod \
-         -t ghcr.io/${{ github.repository_owner }}/tri-dash:latest .
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push image to GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/tri-dash:latest
 
   export-and-deploy-pages:
     runs-on: ubuntu-latest
