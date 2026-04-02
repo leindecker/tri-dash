@@ -1,5 +1,0 @@
-## Dockerfile removed
-
-This project no longer uses Docker for local development or CI. The original Dockerfile has been removed to avoid confusion.
-
-If you previously relied on this file, restore it from git history or see README for guidance on local setup.
