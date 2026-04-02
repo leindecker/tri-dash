@@ -24,7 +24,6 @@ jobs:
       APP_URL: ${{ secrets.APP_URL }}
       STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
       STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     permissions:
       contents: read
