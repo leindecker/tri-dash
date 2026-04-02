@@ -19,6 +19,13 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    env:
+      TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+      APP_URL: ${{ secrets.APP_URL }}
+      STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     permissions:
       contents: read
       packages: write
