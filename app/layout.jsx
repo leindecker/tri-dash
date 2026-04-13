@@ -1,9 +1,19 @@
 'use client';
 
-import { ConfigProvider, theme as antTheme, App } from 'antd';
+import { ConfigProvider, theme as antTheme, App, unstableSetRender } from 'antd';
 import { useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import ptBR from 'antd/locale/pt_BR';
 import './globals.css';
+
+unstableSetRender((node, container) => {
+  container._reactRoot ||= createRoot(container);
+  container._reactRoot.render(node);
+  return async () => {
+    await new Promise((resolve) => setTimeout(resolve));
+    container._reactRoot.unmount();
+  };
+});
 
 const SWIM  = '#1D9E75';
 const BIKE  = '#185FA5';
